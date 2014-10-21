@@ -1,13 +1,14 @@
 import urllib3
 import locale
-import config
 import ConfigParser
+import sys
 
+sys.path.append('.')
 from bitreserve import Bitreserve
 
 locale.setlocale(locale.LC_ALL, 'en_US')
 Config = ConfigParser.ConfigParser()
-Config.read('config.ini')
+Config.read('samples/config.ini')
 
 api = Bitreserve()
 api.auth( Config.get('Settings','username'), Config.get('Settings','password') )
