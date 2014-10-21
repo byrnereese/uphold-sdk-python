@@ -1,12 +1,16 @@
 import urllib3
 import locale
+import config
+import ConfigParser
 
 from bitreserve import Bitreserve
 
 locale.setlocale(locale.LC_ALL, 'en_US')
+Config = ConfigParser.ConfigParser()
+Config.read('config.ini')
 
 api = Bitreserve()
-api.auth('byrne@majordojo.com','Crayola2')
+api.auth( Config.get('Settings','username'), Config.get('Settings','password') )
 print "Getting user data..."
 me = api.get_me()
 print "First name: " + me['firstName']
