@@ -4,7 +4,13 @@ This is a python module to ease integration between python apps and the Bitreser
 
 Repo: http://github.com/byrnereese/bitreserve-python-sdk
 
-# TODO
+TODO
+* Create custom exceptions for common errors
+* Add support for updating records
+* Turn off authentication/authorization for public transactions (or make that optional)
+* Transmit a User-Agent field
+
+METHODS TO ADD SUPPORT FOR
 url = 'https://api.bitreserve.org/v1/me/transactions'
 url = 'https://api.bitreserve.org/v1/me/cards/2b2eb351-b1cc-48f7-a3d0-cb4f1721f3a3'
 url = 'https://api.bitreserve.org/v1/me/cards/2b2eb351-b1cc-48f7-a3d0-cb4f1721f3a3/transactions'
@@ -14,6 +20,7 @@ url = 'https://api.bitreserve.org/v1/reserve/transactions/a97bb994-6e24-4a89-b65
 import urllib3
 import certifi
 import json
+import version
 
 class Bitreserve(object):
     """
@@ -27,9 +34,9 @@ class Bitreserve(object):
             cert_reqs='CERT_REQUIRED', # Force certificate check.
             ca_certs=certifi.where(),  # Path to the Certifi bundle.
             )
-        self.headers = { 'Content-type' : 'application/x-www-form-urlencoded' }
-        #self.headers = { 'Authorization':'Bearer ' + token }
-        #self.headers = { 'Content-type' : 'application/x-www-form-urlencoded','Authorization':'Bearer '+token }
+        self.headers = { 'Content-type' : 'application/x-www-form-urlencoded',
+                         'User-Agent' : 'bitreserve-python-sdk/' + version.__version__ }
+
         
     def auth(self, username, password):
         """
