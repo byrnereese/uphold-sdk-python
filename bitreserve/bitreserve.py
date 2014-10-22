@@ -112,16 +112,16 @@ class Bitreserve(object):
             'destination':'byrne+13@bitreserve.org'}
         data = self._post('/me/cards/'+card+'/transactions/new', fields);
         fields["signature"] = data["signature"]
-        return fields
+        return data["signature"]
 
-    def execute_txn(self, card, to, amount, denom, sig):
+    def execute_txn(self, card, to, amount, denom, sig=''):
         """
         """
         fields = {
             'denomination[currency]':'USD',
             'denomination[amount]':0.01,
             'destination':'byrne+13@bitreserve.org'}
-        if sig:
+        if sig != '':
             fields['signature'] = sig
         return self._post('/me/cards/'+card+'/transactions', fields);
 
