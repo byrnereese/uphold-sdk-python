@@ -17,6 +17,8 @@ url = 'https://api.bitreserve.org/v1/me/cards/2b2eb351-b1cc-48f7-a3d0-cb4f1721f3
 url = 'https://api.bitreserve.org/v1/reserve/transactions/a97bb994-6e24-4a89-b653-e0a6d0bcf634'
 """
 
+from __future__ import print_function, unicode_literals
+
 import urllib3
 import certifi
 import json
@@ -251,7 +253,7 @@ class Bitreserve(object):
             response = self.http.request_encode_body('POST', url, params, self.headers, False)
         except urllib3.exceptions.SSLError as e:
             # Handle incorrect certificate error.
-            print "Failed certificate check"
+            print("Failed certificate check")
 
         data = json.loads(response.data)
         return data
@@ -266,7 +268,7 @@ class Bitreserve(object):
             response = self.http.request('GET', url, headers=self.headers)
         except urllib3.exceptions.SSLError as e:
             # Handle incorrect certificate error.
-            print "Failed certificate check"
+            print("Failed certificate check")
 
         data = json.loads(response.data)
         return data
