@@ -256,7 +256,7 @@ class Bitreserve(object):
             # Handle incorrect certificate error.
             print("Failed certificate check")
 
-        data = json.loads(response.data)
+        data = json.loads(response.data.decode('utf-8'))
         return data
 
     def _get(self, uri):
@@ -271,5 +271,5 @@ class Bitreserve(object):
             # Handle incorrect certificate error.
             print("Failed certificate check")
 
-        data = json.loads(response.data)
+        data = json.loads(response.data.decode('utf-8'))
         return data
