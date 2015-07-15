@@ -22,7 +22,8 @@ from __future__ import print_function, unicode_literals
 import urllib3
 import certifi
 import json
-import version
+from .version import __version__
+
 
 class Bitreserve(object):
     """
@@ -37,7 +38,7 @@ class Bitreserve(object):
             ca_certs=certifi.where(),  # Path to the Certifi bundle.
             )
         self.headers = { 'Content-type' : 'application/x-www-form-urlencoded',
-                         'User-Agent' : 'bitreserve-python-sdk/' + version.__version__ }
+                         'User-Agent' : 'bitreserve-python-sdk/' + __version__ }
 
         
     def auth(self, username, password):
