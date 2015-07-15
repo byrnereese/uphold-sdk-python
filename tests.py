@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 from __future__ import print_function, unicode_literals
-from unittest import TestCase, main
+from unittest import TestCase, main, skip
 from mock import Mock, patch
 from decimal import Decimal
 
@@ -10,6 +10,7 @@ from bitreserve import Bitreserve
 class FakeResponse(object):
     status = 200
     text = ''
+
 
 class TestAuthentication(TestCase):
     def setUp(self):
@@ -111,7 +112,7 @@ class TestTransaction(TestCase):
         self.api = Bitreserve()
         #self.api.auth('user', 'password')
 
-    @patch('requests.post', Mock(response_value=fake_transaction_response))
+    @patch('requests.Session.post', Mock(return_value=fake_transaction_response))
     def test_prepare_txn(self):
         res = self.api.prepare_txn(
             '66cf2c86-8247-4094-bbec-ca29cea8220f',
@@ -119,9 +120,9 @@ class TestTransaction(TestCase):
             Decimal('1.00'),
             'BTC'
         )
-        self.assertEqual(res['id'], '7c377eba-cb1e-45a2-8c13-9807b4139bec')
+        self.assertEqual(res, '7c377eba-cb1e-45a2-8c13-9807b4139bec')
 
-    @patch('requests.post', Mock(response_value=fake_transaction_response))
+    @patch('requests.Session.post', Mock(return_value=fake_transaction_response))
     def test_execute_txn(self):
         res = self.api.execute_txn(
             '66cf2c86-8247-4094-bbec-ca29cea8220f',

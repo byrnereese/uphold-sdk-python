@@ -168,23 +168,23 @@ class Bitreserve(object):
         :param String to The recipient of the funds. Can be in the form of a bitcoin 
           address, an email address, or a Bitreserve membername.
         
-        :param Float amount The amount to send.
+        :param Float/Decimal amount The amount to send.
 
         :param String denom The denomination to send. Permissible values are USD, GBP,
           CNY, JPY, EUR, and BTC.
 
         :rtype:
-          A string representing a handle to a transaction promise.
+          A transaction object.
         """
         fields = {
-            'denomination[currency]':'USD',
-            'denomination[amount]':0.01,
-            'destination':'byrne+13@bitreserve.org'}
-        data = self._post('/me/cards/'+card+'/transactions/new', fields);
-        fields["signature"] = data["signature"]
-        return data["signature"]
+            'denomination[currency]': denom,
+            'denomination[amount]': str(amount),
+            'destination': to
+        }
+        data = self._post('/me/cards/' + card + '/transactions', fields);
+        return data['id']
 
-    def execute_txn(self, card, to, amount, denom, sig=''):
+    def execute_txn(self, card, transaction, message=''):
         """
         Executes a transaction. This is an atomic operation and cannot be reversed.
         When an optional sig parameter is provided a previously quoted market rate
@@ -194,27 +194,15 @@ class Bitreserve(object):
 
         :param String card_id The card ID from which to draw funds.
 
-        :param String to The recipient of the funds. Can be in the form of a bitcoin 
-          address, an email address, or a Bitreserve membername.
-        
-        :param Float amount The amount to send.
-
-        :param String denom The denomination to send. Permissible values are USD, GBP,
-          CNY, JPY, EUR, and BTC.
-
-        :param String promise (optional) The promise handle guaranteeing a previously
-          quoted market rate for the values specified.
+        :param String transaction Id of the transaction as returned by prepare_txn.
 
         :rtype:
-          A string representing a handle to a transaction promise.
+          A transaction object
         """
-        fields = {
-            'denomination[currency]':'USD',
-            'denomination[amount]':0.01,
-            'destination':'byrne+13@bitreserve.org'}
-        if sig != '':
-            fields['signature'] = sig
-        return self._post('/me/cards/'+card+'/transactions', fields);
+        fields = {}
+        if message:
+            fields['message'] = message
+        return self._post('/me/cards/' + card + '/transactions/' + transaction + '/commit', fields);
 
     def get_ticker(self, t=''):
         """
