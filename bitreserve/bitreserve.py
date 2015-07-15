@@ -19,8 +19,7 @@ url = 'https://api.bitreserve.org/v1/reserve/transactions/a97bb994-6e24-4a89-b65
 
 from __future__ import print_function, unicode_literals
 
-import urllib3
-import certifi
+import requests
 import json
 from .version import __version__
 
@@ -33,10 +32,7 @@ class Bitreserve(object):
     def __init__(self, host='api.bitreserve.org'):
         self.host = host
         self.version = 0
-        self.http = urllib3.PoolManager(
-            cert_reqs='CERT_REQUIRED', # Force certificate check.
-            ca_certs=certifi.where(),  # Path to the Certifi bundle.
-            )
+        self.session = requests.Session()
         self.headers = { 'Content-type' : 'application/x-www-form-urlencoded',
                          'User-Agent' : 'bitreserve-python-sdk/' + __version__ }
 
@@ -251,12 +247,12 @@ class Bitreserve(object):
 
         # You're ready to make verified HTTPS requests.
         try:
-            response = self.http.request_encode_body('POST', url, params, self.headers, False)
-        except urllib3.exceptions.SSLError as e:
+            response = self.session.post(url, params, headers=self.headers)
+        except requests.exceptions.SSLError as e:
             # Handle incorrect certificate error.
             print("Failed certificate check")
 
-        data = json.loads(response.data.decode('utf-8'))
+        data = json.loads(response.text)
         return data
 
     def _get(self, uri):
@@ -266,10 +262,10 @@ class Bitreserve(object):
 
         # You're ready to make verified HTTPS requests.
         try:
-            response = self.http.request('GET', url, headers=self.headers)
-        except urllib3.exceptions.SSLError as e:
+            response = self.session.get(url, headers=self.headers)
+        except requests.exceptions.SSLError:
             # Handle incorrect certificate error.
             print("Failed certificate check")
 
-        data = json.loads(response.data.decode('utf-8'))
+        data = json.loads(response.text)
         return data
