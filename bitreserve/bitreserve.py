@@ -181,7 +181,8 @@ class Bitreserve(object):
             'denomination[amount]': str(amount),
             'destination': to
         }
-        data = self._post('/me/cards/' + card + '/transactions', fields);
+        uri = self._build_url('/me/cards/' + card + '/transactions')
+        data = self._post(uri, fields);
         return data['id']
 
     def execute_txn(self, card, transaction, message=''):
@@ -202,7 +203,8 @@ class Bitreserve(object):
         fields = {}
         if message:
             fields['message'] = message
-        return self._post('/me/cards/' + card + '/transactions/' + transaction + '/commit', fields);
+        uri = self._build_url('/me/cards/' + card + '/transactions' + transaction + '/commit')
+        return self._post(uri, fields);
 
     def get_ticker(self, t=''):
         """
@@ -235,7 +237,7 @@ class Bitreserve(object):
 
         # You're ready to make verified HTTPS requests.
         try:
-            response = self.session.post(url, params, headers=self.headers)
+            response = self.session.post(url, data=params, headers=self.headers)
         except requests.exceptions.SSLError as e:
             # Handle incorrect certificate error.
             print("Failed certificate check")
