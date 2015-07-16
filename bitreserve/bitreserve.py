@@ -219,6 +219,8 @@ class Bitreserve(object):
     """
 
     def _build_url(self, uri):
+        if uri.startswith('/oauth2'):
+            return uri
         return '/v' + str(self.version) + uri
 
     def _post(self, uri, params):
