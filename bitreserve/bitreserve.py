@@ -203,7 +203,7 @@ class Bitreserve(object):
         fields = {}
         if message:
             fields['message'] = message
-        uri = self._build_url('/me/cards/' + card + '/transactions' + transaction + '/commit')
+        uri = self._build_url('/me/cards/' + card + '/transactions/' + transaction + '/commit')
         return self._post(uri, fields);
 
     def get_ticker(self, t=''):
