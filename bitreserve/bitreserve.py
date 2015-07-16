@@ -70,8 +70,7 @@ class Bitreserve(object):
         :rtype:
           A hash containing all user's properties.
         """
-        uri = self._build_url('/me')
-        return self._get( uri )
+        return self._get('/me')
 
     """
     def get_addresses(self):
@@ -86,8 +85,7 @@ class Bitreserve(object):
         :rtype:
           An array of hashes containing all the contacts of the current user's properties.
         """
-        uri = self._build_url('/me/contacts')
-        return self._get( uri )
+        return self._get('/me/contacts')
         
     def get_cards(self):
         """
@@ -108,8 +106,7 @@ class Bitreserve(object):
         :rtype:
           An array of hashes containing all the cards of the current user.
         """
-        uri = self._build_url('/me/cards/' + c)
-        return self._get( uri )
+        return self._get('/me/cards/' + c)
 
     def get_phones(self):
         """
@@ -118,8 +115,7 @@ class Bitreserve(object):
         :rtype:
           An array of hashes containing all the phone numbers of the current user.
         """
-        uri = self._build_url('/me/phones')
-        return self._get( uri )
+        return self._get('/me/phones')
 
     def get_reserve_status(self):
         """
@@ -132,8 +128,7 @@ class Bitreserve(object):
         :rtype:
           An array of hashes summarizing the reserve.
         """
-        uri = self._build_url('/reserve')
-        return self._get( uri )
+        return self._get('/reserve')
 
     def get_reserve_ledger(self):
         """
@@ -143,8 +138,7 @@ class Bitreserve(object):
         :rtype:
           An array of ledger entries.
         """
-        uri = self._build_url('/reserve/ledger')
-        return self._get( uri )
+        return self._get('/reserve/ledger')
 
     def get_reserve_chain(self):
         """
@@ -154,8 +148,7 @@ class Bitreserve(object):
         :rtype:
           An array of transactions.
         """
-        uri = self._build_url('/reserve/transactions')
-        return self._get( uri )
+        return self._get('/reserve/transactions')
 
     def prepare_txn(self, card, to, amount, denom):
         """
@@ -181,8 +174,7 @@ class Bitreserve(object):
             'denomination[amount]': str(amount),
             'destination': to
         }
-        uri = self._build_url('/me/cards/' + card + '/transactions')
-        data = self._post(uri, fields);
+        data = self._post('/me/cards/' + card + '/transactions', fields);
         return data['id']
 
     def execute_txn(self, card, transaction, message=''):
@@ -203,8 +195,7 @@ class Bitreserve(object):
         fields = {}
         if message:
             fields['message'] = message
-        uri = self._build_url('/me/cards/' + card + '/transactions/' + transaction + '/commit')
-        return self._post(uri, fields);
+        return self._post('/me/cards/' + card + '/transactions/' + transaction + '/commit', fields);
 
     def get_ticker(self, t=''):
         """
@@ -218,10 +209,10 @@ class Bitreserve(object):
           An array of market rates indexed by currency.
         """
         if t:
-            uri = self._build_url('/ticker/' + t )
+            uri = '/ticker/' + t
         else:
-            uri = self._build_url('/ticker')
-        return self._get( uri )
+            uri = '/ticker'
+        return self._get(uri)
 
     """
     HELPER FUNCTIONS
@@ -233,7 +224,7 @@ class Bitreserve(object):
     def _post(self, uri, params):
         """
         """
-        url = 'https://' + self.host + uri
+        url = 'https://' + self.host + self._build_url(uri)
 
         # You're ready to make verified HTTPS requests.
         try:
@@ -248,7 +239,7 @@ class Bitreserve(object):
     def _get(self, uri):
         """
         """
-        url = 'https://' + self.host + uri
+        url = 'https://' + self.host + self._build_url(uri)
 
         # You're ready to make verified HTTPS requests.
         try:
