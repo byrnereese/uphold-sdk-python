@@ -35,6 +35,7 @@ class Bitreserve(object):
         self.session = requests.Session()
         self.headers = { 'Content-type' : 'application/x-www-form-urlencoded',
                          'User-Agent' : 'bitreserve-python-sdk/' + __version__ }
+        self.pat = None
 
         
     def auth(self, username, password):
