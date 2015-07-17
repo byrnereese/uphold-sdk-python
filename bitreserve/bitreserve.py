@@ -62,6 +62,9 @@ class Bitreserve(object):
         self.headers['Authorization'] = 'Bearer ' + self.token
         return data
 
+    def auth_pat(self, pat):
+        self.pat = pat
+
     def get_me(self):
         """
         Returns a hash containing a comprehensive summary of the current user in content. The data
@@ -230,7 +233,10 @@ class Bitreserve(object):
 
         # You're ready to make verified HTTPS requests.
         try:
-            response = self.session.post(url, data=params, headers=self.headers)
+            if self.pat:
+                response = self.session.post(url, data=params, headers=self.headers, auth=(self.pat, 'X-OAuth-Basic'))
+            else:
+                response = self.session.post(url, data=params, headers=self.headers)
         except requests.exceptions.SSLError as e:
             # Handle incorrect certificate error.
             print("Failed certificate check")
@@ -245,7 +251,10 @@ class Bitreserve(object):
 
         # You're ready to make verified HTTPS requests.
         try:
-            response = self.session.get(url, headers=self.headers)
+            if self.pat:
+                response = self.session.get(url, headers=self.headers, auth=(self.pat, 'X-OAuth-Basic'))
+            else:
+                response = self.session.get(url, headers=self.headers)
         except requests.exceptions.SSLError:
             # Handle incorrect certificate error.
             print("Failed certificate check")
