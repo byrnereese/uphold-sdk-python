@@ -30,9 +30,9 @@ Below is an example of how one would send 1 BTC to someone using Bitreserve:
     card_id = 'adc869d8-xxxx-xxxx-xxxx-72718f0a2be0'
     from bitreserve import Bitreserve
     api = Bitreserve()
-    api.auth( <username>, <password> )
-    promise = api.prepare_txn( card_id, 'luke@skywalker.net', 1, 'BTC' )
-    api.execute_txn( card_id, 'luke@skywalker.net', 1, 'BTC', promise )
+    api.auth(<username>, <password>)
+    txn_id = api.prepare_txn(card_id, 'luke@skywalker.net', 1, 'BTC')
+    api.execute_txn(card_id, txn_id)
 
 A couple of notes about the sample above:
 

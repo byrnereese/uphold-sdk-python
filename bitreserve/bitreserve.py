@@ -17,10 +17,12 @@ url = 'https://api.bitreserve.org/v1/me/cards/2b2eb351-b1cc-48f7-a3d0-cb4f1721f3
 url = 'https://api.bitreserve.org/v1/reserve/transactions/a97bb994-6e24-4a89-b653-e0a6d0bcf634'
 """
 
-import urllib3
-import certifi
+from __future__ import print_function, unicode_literals
+
+import requests
 import json
-import version
+from .version import __version__
+
 
 class Bitreserve(object):
     """
@@ -30,12 +32,10 @@ class Bitreserve(object):
     def __init__(self, host='api.bitreserve.org'):
         self.host = host
         self.version = 0
-        self.http = urllib3.PoolManager(
-            cert_reqs='CERT_REQUIRED', # Force certificate check.
-            ca_certs=certifi.where(),  # Path to the Certifi bundle.
-            )
+        self.session = requests.Session()
         self.headers = { 'Content-type' : 'application/x-www-form-urlencoded',
-                         'User-Agent' : 'bitreserve-python-sdk/' + version.__version__ }
+                         'User-Agent' : 'bitreserve-python-sdk/' + __version__ }
+        self.pat = None
 
         
     def auth(self, username, password):
@@ -63,6 +63,9 @@ class Bitreserve(object):
         self.headers['Authorization'] = 'Bearer ' + self.token
         return data
 
+    def auth_pat(self, pat):
+        self.pat = pat
+
     def get_me(self):
         """
         Returns a hash containing a comprehensive summary of the current user in content. The data
@@ -71,8 +74,7 @@ class Bitreserve(object):
         :rtype:
           A hash containing all user's properties.
         """
-        uri = self._build_url('/me')
-        return self._get( uri )
+        return self._get('/me')
 
     """
     def get_addresses(self):
@@ -87,8 +89,7 @@ class Bitreserve(object):
         :rtype:
           An array of hashes containing all the contacts of the current user's properties.
         """
-        uri = self._build_url('/me/contacts')
-        return self._get( uri )
+        return self._get('/me/contacts')
         
     def get_cards(self):
         """
@@ -109,8 +110,7 @@ class Bitreserve(object):
         :rtype:
           An array of hashes containing all the cards of the current user.
         """
-        uri = self._build_url('/me/cards/' + c)
-        return self._get( uri )
+        return self._get('/me/cards/' + c)
 
     def get_phones(self):
         """
@@ -119,8 +119,7 @@ class Bitreserve(object):
         :rtype:
           An array of hashes containing all the phone numbers of the current user.
         """
-        uri = self._build_url('/me/phones')
-        return self._get( uri )
+        return self._get('/me/phones')
 
     def get_reserve_status(self):
         """
@@ -133,8 +132,7 @@ class Bitreserve(object):
         :rtype:
           An array of hashes summarizing the reserve.
         """
-        uri = self._build_url('/reserve')
-        return self._get( uri )
+        return self._get('/reserve')
 
     def get_reserve_ledger(self):
         """
@@ -144,8 +142,7 @@ class Bitreserve(object):
         :rtype:
           An array of ledger entries.
         """
-        uri = self._build_url('/reserve/ledger')
-        return self._get( uri )
+        return self._get('/reserve/ledger')
 
     def get_reserve_chain(self):
         """
@@ -155,8 +152,7 @@ class Bitreserve(object):
         :rtype:
           An array of transactions.
         """
-        uri = self._build_url('/reserve/transactions')
-        return self._get( uri )
+        return self._get('/reserve/transactions')
 
     def prepare_txn(self, card, to, amount, denom):
         """
@@ -169,23 +165,23 @@ class Bitreserve(object):
         :param String to The recipient of the funds. Can be in the form of a bitcoin 
           address, an email address, or a Bitreserve membername.
         
-        :param Float amount The amount to send.
+        :param Float/Decimal amount The amount to send.
 
         :param String denom The denomination to send. Permissible values are USD, GBP,
           CNY, JPY, EUR, and BTC.
 
         :rtype:
-          A string representing a handle to a transaction promise.
+          A transaction object.
         """
         fields = {
-            'denomination[currency]':'USD',
-            'denomination[amount]':0.01,
-            'destination':'byrne+13@bitreserve.org'}
-        data = self._post('/me/cards/'+card+'/transactions/new', fields);
-        fields["signature"] = data["signature"]
-        return data["signature"]
+            'denomination[currency]': denom,
+            'denomination[amount]': str(amount),
+            'destination': to
+        }
+        data = self._post('/me/cards/' + card + '/transactions', fields);
+        return data['id']
 
-    def execute_txn(self, card, to, amount, denom, sig=''):
+    def execute_txn(self, card, transaction, message=''):
         """
         Executes a transaction. This is an atomic operation and cannot be reversed.
         When an optional sig parameter is provided a previously quoted market rate
@@ -195,27 +191,15 @@ class Bitreserve(object):
 
         :param String card_id The card ID from which to draw funds.
 
-        :param String to The recipient of the funds. Can be in the form of a bitcoin 
-          address, an email address, or a Bitreserve membername.
-        
-        :param Float amount The amount to send.
-
-        :param String denom The denomination to send. Permissible values are USD, GBP,
-          CNY, JPY, EUR, and BTC.
-
-        :param String promise (optional) The promise handle guaranteeing a previously
-          quoted market rate for the values specified.
+        :param String transaction Id of the transaction as returned by prepare_txn.
 
         :rtype:
-          A string representing a handle to a transaction promise.
+          A transaction object
         """
-        fields = {
-            'denomination[currency]':'USD',
-            'denomination[amount]':0.01,
-            'destination':'byrne+13@bitreserve.org'}
-        if sig != '':
-            fields['signature'] = sig
-        return self._post('/me/cards/'+card+'/transactions', fields);
+        fields = {}
+        if message:
+            fields['message'] = message
+        return self._post('/me/cards/' + card + '/transactions/' + transaction + '/commit', fields);
 
     def get_ticker(self, t=''):
         """
@@ -229,44 +213,52 @@ class Bitreserve(object):
           An array of market rates indexed by currency.
         """
         if t:
-            uri = self._build_url('/ticker/' + t )
+            uri = '/ticker/' + t
         else:
-            uri = self._build_url('/ticker')
-        return self._get( uri )
+            uri = '/ticker'
+        return self._get(uri)
 
     """
     HELPER FUNCTIONS
     """
 
     def _build_url(self, uri):
+        if uri.startswith('/oauth2'):
+            return uri
         return '/v' + str(self.version) + uri
 
     def _post(self, uri, params):
         """
         """
-        url = 'https://' + self.host + uri
+        url = 'https://' + self.host + self._build_url(uri)
 
         # You're ready to make verified HTTPS requests.
         try:
-            response = self.http.request_encode_body('POST', url, params, self.headers, False)
-        except urllib3.exceptions.SSLError as e:
+            if self.pat:
+                response = self.session.post(url, data=params, headers=self.headers, auth=(self.pat, 'X-OAuth-Basic'))
+            else:
+                response = self.session.post(url, data=params, headers=self.headers)
+        except requests.exceptions.SSLError as e:
             # Handle incorrect certificate error.
-            print "Failed certificate check"
+            print("Failed certificate check")
 
-        data = json.loads(response.data)
+        data = json.loads(response.text)
         return data
 
     def _get(self, uri):
         """
         """
-        url = 'https://' + self.host + uri
+        url = 'https://' + self.host + self._build_url(uri)
 
         # You're ready to make verified HTTPS requests.
         try:
-            response = self.http.request('GET', url, headers=self.headers)
-        except urllib3.exceptions.SSLError as e:
+            if self.pat:
+                response = self.session.get(url, headers=self.headers, auth=(self.pat, 'X-OAuth-Basic'))
+            else:
+                response = self.session.get(url, headers=self.headers)
+        except requests.exceptions.SSLError:
             # Handle incorrect certificate error.
-            print "Failed certificate check"
+            print("Failed certificate check")
 
-        data = json.loads(response.data)
+        data = json.loads(response.text)
         return data
