@@ -10,18 +10,42 @@ username and password in hand, you can begin building apps against the Bitreserv
 
 ## Authentication
 
-Bitreserve utilizes OAuth2 for authentication. Right now, Bitreserve requires passing a username 
-and password via the API to obtain a User Authentication Token (UAT). The python SDK eliminates much
-of the need to worry about such details though. Here is an example of how to authenticate using 
-the Python SDK:
+There are three ways to authenticate against the API:
+
+* **OAuth** is the perfect solution for when your app needs to request permission to access a user's
+Bitreserve account. 
+
+* A **Personal Access Token ("PAT")** is ideal when you need to generate a token to access your own Bitreserve
+account. 
+
+* Basic authentication (username and password) can sometimes be the easiest way to get started, but is not always the best choice from a security perspective. 
+
+You can find out more about these two methods in our [API documentation](https://developer.bitreserve.org/api/v0/#authentication). 
+
+### Basic Auth Example
 
     from bitreserve import Bitreserve
     api = Bitreserve()
     api.auth( <username>, <password> )
     me = api.get_me()
 
-*In the future, Bitreserve will support additional means of authentication that do not require the 
-direct use of a username and password hard coded in software or config files.*
+### Personal Access Token Example
+
+    from bitreserve import Bitreserve
+    api = Bitreserve()
+    api.auth_pat( <PAT> )
+    me = api.get_me()
+
+## Interacting with the Bitreserve Sandbox
+
+The [Bitreserve Sandbox](https://developer.bitreserve.org/en/sandbox) is a test environment for developers to build and test their apps. The Sandbox environment uses fake money, but is otherwise an exact copy of our production system. 
+
+    from bitreserve import Bitreserve
+    api = Bitreserve(host='api-sandbox.bitreserve.org')
+
+## Conducting a Transaction
+
+Transactions are conducted in two steps. First you prepare a transaction. This retrieves a quote for the transaction which will be honored for 30 seconds. This is a perfect way of generating a transaction preview for your user if you need to. Second is to execute a prepared transaction. 
 
 ## Example: Sending a Transaction
 
@@ -44,9 +68,8 @@ A couple of notes about the sample above:
 * When sending money via Bitreserve, you can specify a recipient in the form of a bitcoin address,
   an email address, or a Bitreserve member name.
 
-* Obtaining a "promise" is helpful when a transaction involves an exchange of value from one form
-  or another. This promise secures a quote for the transaction which Bitreserve will honor for 30
-  seconds. Obtaining a promise is *not* required.
+* One may send money to a bitcoin address, an email address, a Bitreserve username, 
+  or a phone number. 
 
 *For a complete reference to the Bitreserve API, including examples in Python, please consult 
 the [Bitreserve API documentation](http://developers.bitreserve.org/).*
@@ -54,20 +77,12 @@ the [Bitreserve API documentation](http://developers.bitreserve.org/).*
 ## Resources
 
 * [Bitreserve Home](http://bitreserve.org/)
-* [Bitreserve API Documentation](http://developers.bitreserve.org/)
+* [Bitreserve Developer Site](http://developer.bitreserve.org/)
 * [Bitreserve Help Center](http://support.bitreserve.org/)      
 
-## About Bitreserve
+### Example Apps in Python
 
-Bitreserve makes using digital money fast, easy and free.
-
-Bitreserve shields its members from bitcoin volatility by enabling them to hold bitcoin as stable, 
-real-world currency. Bitreserve keeps your value safe while letting you spend it as bitcoin and send 
-it to anyone in the world instantly and for free.
-
-Transfer your bitcoin to U.S. dollars, euros, pounds, yen and yuan with no delays — we offer instant, 
-low-cost currency conversions. And we maintain a full reserve of real-world currencies and publish a 
-real-time, verifiable proof of solvency, so you always know your value is safe.
+* [MoneyBot](https://github.com/jneves/moneybot) - a script that will distribute value across your cards based upon certain weightings. 
 
 ## License
 
