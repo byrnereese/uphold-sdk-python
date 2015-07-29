@@ -1,7 +1,7 @@
 # Bitreserve Python SDK
 
 Welcome to the Bitreserve SDK for Python developers. Using this library, developers can more easily 
-get started using the [Bitreserve API](http://developers.bitreserve.org/api/v1/). 
+get started using the [Bitreserve API](https://developer.bitreserve.org/api/v0/). 
 
 ## Getting Started
 
