@@ -200,6 +200,34 @@ class Bitreserve(object):
             fields['message'] = message
         return self._post('/me/cards/' + card + '/transactions/' + transaction + '/commit', fields);
 
+    def cancel_txn(self, card, transaction):
+        """
+        Cancels a transaction that has not yet been redeemed.
+
+        :param String card_id The card ID from which to draw funds.
+
+        :param String transaction Id of the transaction as returned by prepare_txn.
+
+        :rtype:
+          A transaction object
+        """
+        fields = {}
+        return self._post('/me/cards/' + card + '/transactions/' + transaction + '/cancel', fields);
+
+    def resend_txn(self, card, transaction):
+        """
+        Triggers a reminder for a transaction that hasn’t been redeemed yet.
+
+        :param String card_id The card ID from which to draw funds.
+
+        :param String transaction Id of the transaction as returned by prepare_txn.
+
+        :rtype:
+          A transaction object
+        """
+        fields = {}
+        return self._post('/me/cards/' + card + '/transactions/' + transaction + '/resend', fields);
+
     def get_ticker(self, t=''):
         """
         Returns current market rates used by the Bitreserve platform when conducting
