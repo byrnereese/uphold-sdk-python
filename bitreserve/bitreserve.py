@@ -98,8 +98,7 @@ class Bitreserve(object):
         :rtype:
           An array of hashes containing all the cards of the current user.
         """
-        uri = self._build_url('/me/cards')
-        return self._get( uri )
+        return self._get('/me/cards')
 
     def get_card(self, c):
         """
