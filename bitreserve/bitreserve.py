@@ -91,6 +91,25 @@ class Bitreserve(object):
         """
         return self._get('/me/contacts')
         
+    def get_contact(self, contact):
+        """
+        Returns the contact associated with the contact id.
+
+        :rtype:
+          An hash containing the contact requested.
+        """
+        return self._get('/me/contacts/{}'.format(contact))
+
+    def create_contact(self, first_name, last_name, company, emails=[], bitcoin_addresses=[]):
+        fields = {
+            'firstName': first_name,
+            'lastName': last_name,
+            'company': company,
+            'emails': emails,
+            'addresses': bitcoin_addresses
+        }
+        return self._post('/me/contacts', fields)
+    
     def get_cards(self):
         """
         Returns all of the cards associated with the current users.
@@ -110,6 +129,15 @@ class Bitreserve(object):
           An array of hashes containing all the cards of the current user.
         """
         return self._get('/me/cards/' + c)
+
+    def get_card_transactions(self, card):
+        """
+        Requests a list of transactions associated with a specific card.
+
+        :rtype:
+          An array of hashes containing all the card transactions.
+        """
+        return self._get('/me/cards/{}/transactions'.format(card))
 
     def get_phones(self):
         """
@@ -133,6 +161,9 @@ class Bitreserve(object):
         """
         return self._get('/reserve')
 
+    def get_reserve_statistics(self):
+        return self._get('/reserve/statistics')
+
     def get_reserve_ledger(self):
         """
         Returns all the rows belowing to the ledger. Each row documents a change in
@@ -153,6 +184,24 @@ class Bitreserve(object):
         """
         return self._get('/reserve/transactions')
 
+    def get_reserve_transaction(self, transaction):
+        """
+        Returns a public transaction from the Reservechain. These transactions are 100% anonymous. 
+
+        :rtype:
+          An array with the transaction.
+        """
+        return self._get('/reserve/transactions/{}'.format(transaction))
+
+    def get_transactions(self):
+        """
+        Requests a list of transactions associated with the current user.
+
+        :rtype:
+          An array of hashes containing all the current user's transactions.
+        """
+        return self._get('/me/transactions')
+        
     def prepare_txn(self, card, to, amount, denom):
         """
         Developers can optionally prepare a transaction in order to preview a transaction
