@@ -262,7 +262,7 @@ class Bitreserve(object):
 
     def resend_txn(self, card, transaction):
         """
-        Triggers a reminder for a transaction that hasn’t been redeemed yet.
+        Triggers a reminder for a transaction that hasn't been redeemed yet.
 
         :param String card_id The card ID from which to draw funds.
 
