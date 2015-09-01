@@ -28,16 +28,17 @@ class Bitreserve(object):
     """
     Use this SDK to simplify interaction with the Bitreserve API
     """
-    
+
     def __init__(self, host='api.bitreserve.org'):
         self.host = host
         self.version = 0
         self.session = requests.Session()
-        self.headers = { 'Content-type' : 'application/x-www-form-urlencoded',
-                         'User-Agent' : 'bitreserve-python-sdk/' + __version__ }
+        self.headers = {
+            'Content-type': 'application/x-www-form-urlencoded',
+            'User-Agent': 'bitreserve-python-sdk/' + __version__
+        }
         self.pat = None
 
-        
     def auth(self, username, password):
         """
         Authenticates against the Bitreserve backend using a username and password. Bitreserve
@@ -51,11 +52,13 @@ class Bitreserve(object):
           The user authentication token string.
         """
 
-        params = {'client_id'     : 'BITRESERVE',
-                  'client_secret' : 'secret',
-                  'grant_type'    : 'password',
-                  'username'      : username,
-                  'password'      : password }
+        params = {
+            'client_id': 'BITRESERVE',
+            'client_secret': 'secret',
+            'grant_type': 'password',
+            'username': username,
+            'password': password
+        }
 
         data = self._post('/oauth2/token', params)
         self.token = data.get('access_token')
@@ -69,19 +72,13 @@ class Bitreserve(object):
     def get_me(self):
         """
         Returns a hash containing a comprehensive summary of the current user in content. The data
-        returned contains profile data, a list of the users cards, recent transactions and more. 
+        returned contains profile data, a list of the users cards, recent transactions and more.
 
         :rtype:
           A hash containing all user's properties.
         """
         return self._get('/me')
 
-    """
-    def get_addresses(self):
-        uri = self._build_url('/me/addresses')
-        return self._get( uri )
-    """
-        
     def get_contacts(self):
         """
         Returns all of the contacts associated with the current users.
@@ -90,7 +87,26 @@ class Bitreserve(object):
           An array of hashes containing all the contacts of the current user's properties.
         """
         return self._get('/me/contacts')
-        
+
+    def get_contact(self, contact):
+        """
+        Returns the contact associated with the contact id.
+
+        :rtype:
+          An hash containing the contact requested.
+        """
+        return self._get('/me/contacts/{}'.format(contact))
+
+    def create_contact(self, first_name, last_name, company, emails=[], bitcoin_addresses=[]):
+        fields = {
+            'firstName': first_name,
+            'lastName': last_name,
+            'company': company,
+            'emails': emails,
+            'addresses': bitcoin_addresses
+        }
+        return self._post('/me/contacts', fields)
+
     def get_cards(self):
         """
         Returns all of the cards associated with the current users.
@@ -98,8 +114,7 @@ class Bitreserve(object):
         :rtype:
           An array of hashes containing all the cards of the current user.
         """
-        uri = self._build_url('/me/cards')
-        return self._get( uri )
+        return self._get('/me/cards')
 
     def get_card(self, c):
         """
@@ -111,6 +126,15 @@ class Bitreserve(object):
           An array of hashes containing all the cards of the current user.
         """
         return self._get('/me/cards/' + c)
+
+    def get_card_transactions(self, card):
+        """
+        Requests a list of transactions associated with a specific card.
+
+        :rtype:
+          An array of hashes containing all the card transactions.
+        """
+        return self._get('/me/cards/{}/transactions'.format(card))
 
     def get_phones(self):
         """
@@ -125,7 +149,7 @@ class Bitreserve(object):
         """
         Returns the current status of the reserve. The current status summarized
         the liabilities and assets currently held in the reserve, indexed by the
-        asset type. Furthermore, the value of each asset and liability is 
+        asset type. Furthermore, the value of each asset and liability is
         represented in all supported fiat currencies allowing developers to quickly
         show the value of the reserve in US Dollars, or Euros, etc.
 
@@ -134,10 +158,13 @@ class Bitreserve(object):
         """
         return self._get('/reserve')
 
+    def get_reserve_statistics(self):
+        return self._get('/reserve/statistics')
+
     def get_reserve_ledger(self):
         """
         Returns all the rows belowing to the ledger. Each row documents a change in
-        the reserve's assets or its liabilities. 
+        the reserve's assets or its liabilities.
 
         :rtype:
           An array of ledger entries.
@@ -147,12 +174,30 @@ class Bitreserve(object):
     def get_reserve_chain(self):
         """
         Returns the entire Reservechain consisting of all of the transactions conducted
-        by its members. These transactions are 100% anonymous. 
+        by its members. These transactions are 100% anonymous.
 
         :rtype:
           An array of transactions.
         """
         return self._get('/reserve/transactions')
+
+    def get_reserve_transaction(self, transaction):
+        """
+        Returns a public transaction from the Reservechain. These transactions are 100% anonymous.
+
+        :rtype:
+          An array with the transaction.
+        """
+        return self._get('/reserve/transactions/{}'.format(transaction))
+
+    def get_transactions(self):
+        """
+        Requests a list of transactions associated with the current user.
+
+        :rtype:
+          An array of hashes containing all the current user's transactions.
+        """
+        return self._get('/me/transactions')
 
     def prepare_txn(self, card, to, amount, denom):
         """
@@ -162,9 +207,9 @@ class Bitreserve(object):
 
         :param String card_id The card ID from which to draw funds.
 
-        :param String to The recipient of the funds. Can be in the form of a bitcoin 
+        :param String to The recipient of the funds. Can be in the form of a bitcoin
           address, an email address, or a Bitreserve membername.
-        
+
         :param Float/Decimal amount The amount to send.
 
         :param String denom The denomination to send. Permissible values are USD, GBP,
@@ -178,7 +223,7 @@ class Bitreserve(object):
             'denomination[amount]': str(amount),
             'destination': to
         }
-        data = self._post('/me/cards/' + card + '/transactions', fields);
+        data = self._post('/me/cards/' + card + '/transactions', fields)
         return data['id']
 
     def execute_txn(self, card, transaction, message=''):
@@ -199,13 +244,41 @@ class Bitreserve(object):
         fields = {}
         if message:
             fields['message'] = message
-        return self._post('/me/cards/' + card + '/transactions/' + transaction + '/commit', fields);
+        return self._post('/me/cards/' + card + '/transactions/' + transaction + '/commit', fields)
+
+    def cancel_txn(self, card, transaction):
+        """
+        Cancels a transaction that has not yet been redeemed.
+
+        :param String card_id The card ID from which to draw funds.
+
+        :param String transaction Id of the transaction as returned by prepare_txn.
+
+        :rtype:
+          A transaction object
+        """
+        fields = {}
+        return self._post('/me/cards/' + card + '/transactions/' + transaction + '/cancel', fields)
+
+    def resend_txn(self, card, transaction):
+        """
+        Triggers a reminder for a transaction that hasn't been redeemed yet.
+
+        :param String card_id The card ID from which to draw funds.
+
+        :param String transaction Id of the transaction as returned by prepare_txn.
+
+        :rtype:
+          A transaction object
+        """
+        fields = {}
+        return self._post('/me/cards/' + card + '/transactions/' + transaction + '/resend', fields)
 
     def get_ticker(self, t=''):
         """
         Returns current market rates used by the Bitreserve platform when conducting
-        exchanges. These rates do not include the commission Bitreserve applies to 
-        exchanges. 
+        exchanges. These rates do not include the commission Bitreserve applies to
+        exchanges.
 
         :param String ticker (optional) A specific currency to retrieve quotes for.
 
