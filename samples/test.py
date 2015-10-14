@@ -9,13 +9,13 @@ except:
 import sys
 
 sys.path.append('.')
-from bitreserve import Bitreserve
+from uphold import Uphold
 
 locale.setlocale(locale.LC_ALL, 'en_US')
 Config = ConfigParser()
 Config.read('samples/config.ini')
 
-api = Bitreserve()
+api = Uphold()
 api.auth( Config.get('Settings','username'), Config.get('Settings','password') )
 print("Getting user data...")
 me = api.get_me()

@@ -1,47 +1,47 @@
-# Bitreserve Python SDK
+# Uphold Python SDK
 
-Welcome to the Bitreserve SDK for Python developers. Using this library, developers can more easily 
-get started using the [Bitreserve API](https://developer.bitreserve.org/api/v0/). 
+Welcome to the Uphold SDK for Python developers. Using this library, developers can more easily 
+get started using the [Uphold API](https://developer.uphold.com/api/v0/). 
 
 ## Getting Started
 
-To begin, visit the [Bitreserve website](http://bitreserve.org/) and create an account. With a 
-username and password in hand, you can begin building apps against the Bitreserve API immediately. 
+To begin, visit the [Uphold website](http://uphold.com/) and create an account. With a 
+username and password in hand, you can begin building apps against the Uphold API immediately. 
 
 ## Authentication
 
 There are three ways to authenticate against the API:
 
 * **OAuth** is the perfect solution for when your app needs to request permission to access a user's
-Bitreserve account. 
+Uphold account. 
 
-* A **Personal Access Token ("PAT")** is ideal when you need to generate a token to access your own Bitreserve
+* A **Personal Access Token ("PAT")** is ideal when you need to generate a token to access your own Uphold
 account. 
 
 * Basic authentication (username and password) can sometimes be the easiest way to get started, but is not always the best choice from a security perspective. 
 
-You can find out more about these two methods in our [API documentation](https://developer.bitreserve.org/api/v0/#authentication). 
+You can find out more about these two methods in our [API documentation](https://developer.uphold.com/api/v0/#authentication). 
 
 ### Basic Auth Example
 
-    from bitreserve import Bitreserve
-    api = Bitreserve()
+    from uphold import Uphold
+    api = Uphold()
     api.auth( <username>, <password> )
     me = api.get_me()
 
 ### Personal Access Token Example
 
-    from bitreserve import Bitreserve
-    api = Bitreserve()
+    from uphold import Uphold
+    api = Uphold()
     api.auth_pat( <PAT> )
     me = api.get_me()
 
-## Interacting with the Bitreserve Sandbox
+## Interacting with the Uphold Sandbox
 
-The [Bitreserve Sandbox](https://developer.bitreserve.org/en/sandbox) is a test environment for developers to build and test their apps. The Sandbox environment uses fake money, but is otherwise an exact copy of our production system. 
+The [Uphold Sandbox](https://developer.uphold.com/en/sandbox) is a test environment for developers to build and test their apps. The Sandbox environment uses fake money, but is otherwise an exact copy of our production system. 
 
-    from bitreserve import Bitreserve
-    api = Bitreserve(host='api-sandbox.bitreserve.org')
+    from uphold import Uphold
+    api = Uphold(host='api-sandbox.uphold.com')
 
 ## Conducting a Transaction
 
@@ -49,11 +49,11 @@ Transactions are conducted in two steps. First you prepare a transaction. This r
 
 ## Example: Sending a Transaction
 
-Below is an example of how one would send 1 BTC to someone using Bitreserve:
+Below is an example of how one would send 1 BTC to someone using Uphold:
 
     card_id = 'adc869d8-xxxx-xxxx-xxxx-72718f0a2be0'
-    from bitreserve import Bitreserve
-    api = Bitreserve()
+    from uphold import Uphold
+    api = Uphold()
     api.auth(<username>, <password>)
     txn_id = api.prepare_txn(card_id, 'luke@skywalker.net', 1, 'BTC')
     api.execute_txn(card_id, txn_id)
@@ -62,23 +62,23 @@ A couple of notes about the sample above:
 
 * A card ID is required to identify from which store of value you will be sending value from.
 
-* One may specify sending any amount in any denomination. If an exchange is implied, Bitreserve
+* One may specify sending any amount in any denomination. If an exchange is implied, Uphold
   will handle the exchange for you automatically.
 
-* When sending money via Bitreserve, you can specify a recipient in the form of a bitcoin address,
-  an email address, or a Bitreserve member name.
+* When sending money via Uphold, you can specify a recipient in the form of a bitcoin address,
+  an email address, or a Uphold member name.
 
-* One may send money to a bitcoin address, an email address, a Bitreserve username, 
+* One may send money to a bitcoin address, an email address, a Uphold username, 
   or a phone number. 
 
-*For a complete reference to the Bitreserve API, including examples in Python, please consult 
-the [Bitreserve API documentation](http://developers.bitreserve.org/).*
+*For a complete reference to the Uphold API, including examples in Python, please consult 
+the [Uphold API documentation](http://developer.uphold.com/).*
 
 ## Resources
 
-* [Bitreserve Home](http://bitreserve.org/)
-* [Bitreserve Developer Site](http://developer.bitreserve.org/)
-* [Bitreserve Help Center](http://support.bitreserve.org/)      
+* [Uphold Home](http://uphold.com/)
+* [Uphold Developer Site](http://developer.uphold.com/)
+* [Uphold Help Center](http://support.uphold.com/)      
 
 ### Example Apps in Python
 

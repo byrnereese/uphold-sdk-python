@@ -1,8 +1,8 @@
 """
-Bitreserve Python SDK
-This is a python module to ease integration between python apps and the Bitreserve API.
+Uphold Python SDK
+This is a python module to ease integration between python apps and the Uphold API.
 
-Repo: http://github.com/byrnereese/bitreserve-python-sdk
+Repo: http://github.com/byrnereese/uphold-python-sdk
 
 TODO
 * Create custom exceptions for common errors
@@ -11,10 +11,10 @@ TODO
 * Transmit a User-Agent field
 
 METHODS TO ADD SUPPORT FOR
-url = 'https://api.bitreserve.org/v1/me/transactions'
-url = 'https://api.bitreserve.org/v1/me/cards/2b2eb351-b1cc-48f7-a3d0-cb4f1721f3a3'
-url = 'https://api.bitreserve.org/v1/me/cards/2b2eb351-b1cc-48f7-a3d0-cb4f1721f3a3/transactions'
-url = 'https://api.bitreserve.org/v1/reserve/transactions/a97bb994-6e24-4a89-b653-e0a6d0bcf634'
+url = 'https://api.uphold.com/v1/me/transactions'
+url = 'https://api.uphold.com/v1/me/cards/2b2eb351-b1cc-48f7-a3d0-cb4f1721f3a3'
+url = 'https://api.uphold.com/v1/me/cards/2b2eb351-b1cc-48f7-a3d0-cb4f1721f3a3/transactions'
+url = 'https://api.uphold.com/v1/reserve/transactions/a97bb994-6e24-4a89-b653-e0a6d0bcf634'
 """
 
 from __future__ import print_function, unicode_literals
@@ -24,27 +24,27 @@ import json
 from .version import __version__
 
 
-class Bitreserve(object):
+class Uphold(object):
     """
-    Use this SDK to simplify interaction with the Bitreserve API
+    Use this SDK to simplify interaction with the Uphold API
     """
 
-    def __init__(self, host='api.bitreserve.org'):
+    def __init__(self, host='api.uphold.com'):
         self.host = host
         self.version = 0
         self.session = requests.Session()
         self.headers = {
             'Content-type': 'application/x-www-form-urlencoded',
-            'User-Agent': 'bitreserve-python-sdk/' + __version__
+            'User-Agent': 'uphold-python-sdk/' + __version__
         }
         self.pat = None
 
     def auth(self, username, password):
         """
-        Authenticates against the Bitreserve backend using a username and password. Bitreserve
+        Authenticates against the Uphold backend using a username and password. Uphold
         return an User Auth Token, which is persisted for the life of the session.
 
-        :param String username A Bitreserve username or email address.
+        :param String username An Uphold username or email address.
 
         :param String password The password corresponding to the specified username.
 
@@ -53,7 +53,7 @@ class Bitreserve(object):
         """
 
         params = {
-            'client_id': 'BITRESERVE',
+            'client_id': 'UPHOLD',
             'client_secret': 'secret',
             'grant_type': 'password',
             'username': username,
@@ -208,7 +208,7 @@ class Bitreserve(object):
         :param String card_id The card ID from which to draw funds.
 
         :param String to The recipient of the funds. Can be in the form of a bitcoin
-          address, an email address, or a Bitreserve membername.
+          address, an email address, or an Uphold username.
 
         :param Float/Decimal amount The amount to send.
 
@@ -276,8 +276,8 @@ class Bitreserve(object):
 
     def get_ticker(self, t=''):
         """
-        Returns current market rates used by the Bitreserve platform when conducting
-        exchanges. These rates do not include the commission Bitreserve applies to
+        Returns current market rates used by the Uphold platform when conducting
+        exchanges. These rates do not include the commission Uphold applies to
         exchanges.
 
         :param String ticker (optional) A specific currency to retrieve quotes for.

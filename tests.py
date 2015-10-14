@@ -4,7 +4,7 @@ from unittest import TestCase, main, skip
 from mock import Mock, patch
 from decimal import Decimal
 
-from bitreserve import Bitreserve
+from uphold import Uphold
 
 
 class FakeResponse(object):
