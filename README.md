@@ -38,7 +38,7 @@ You can find out more about these two methods in our [API documentation](https:/
 
 ## Interacting with the Uphold Sandbox
 
-The [Uphold Sandbox](https://developer.uphold.com/en/sandbox) is a test environment for developers to build and test their apps. The Sandbox environment uses fake money, but is otherwise an exact copy of our production system. 
+The [Uphold Sandbox](https://uphold.com/en/developer/sandbox) is a test environment for developers to build and test their apps. The Sandbox environment uses fake money, but is otherwise an exact copy of our production system. 
 
     from uphold import Uphold
     api = Uphold(host='api-sandbox.uphold.com')
