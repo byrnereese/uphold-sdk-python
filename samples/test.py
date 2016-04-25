@@ -9,14 +9,15 @@ except:
 import sys
 
 sys.path.append('.')
-from uphold import Uphold
+from uphold import *
 
 locale.setlocale(locale.LC_ALL, 'en_US')
 Config = ConfigParser()
 Config.read('samples/config.ini')
 
 api = Uphold()
-api.auth( Config.get('Settings','username'), Config.get('Settings','password') )
+api.auth_pat( Config.get('Settings','pat') )
+
 print("Getting user data...")
 me = api.get_me()
 print("First name: {}".format(me['firstName']))
@@ -27,38 +28,26 @@ cards = api.get_cards()
 for card in cards:
     print(card['label'] + ": " + card["available"] + " (" + card["id"] + ")")
 
-print("\nGetting USD Card...")
-usd_card = api.get_card("20c0ccf3-e316-40c1-8a2a-982dd92a96ca")
-print(usd_card['label'])
+card_id = cards[0]['id']
+
+print("\nGetting card labeled '" + cards[0]['label'] + "'")
+card = api.get_card( cards[0]['id'] )
+print("Available balance: " + card['available'])
 
 print("\nGetting contacts...")
 contacts = api.get_contacts()
 for contact in contacts:
-    print(contact['firstName'] + " " + contact["lastName"])
-
-'''
-print "\nGetting addresses..."
-addresses = api.get_addresses()
-for addr in addresses:
-    print addr
-'''
+    if contact and contact['firstName'] is not None and contact['lastName'] is not None: 
+        print(contact['firstName'] + " " + contact['lastName'])
 
 print("\nGetting phones...")
 phones = api.get_phones()
 for phone in phones:
     print(phone['internationalMasked'])
 
-print("\nGetting reserve status...")
-stats = api.get_reserve_status()
-for stat in stats:
-    cur = stat["currency"]
-    for norm in stat["normalized"]:
-        if norm["currency"] == "USD":
-            break
-    if cur == "USD":
-        print(cur + ": liabilities=" + locale.currency( float(stat["liabilities"]), grouping=True ) + ", assets=" + locale.currency( float(stat["assets"]), grouping=True ))
-    else:
-        print(cur + ": liabilities=" + stat["liabilities"] + " (" + locale.currency( float(norm["liabilities"]), grouping=True ) + "), assets=" + stat["assets"] + " (" + locale.currency( float(norm["assets"]), grouping=True ) + ")")
+print("\nGetting personal access tokens...")
+pats = api.get_pats()
+print(pats)
 
 print("\nGetting ledger (first 20 entries)...")
 entries = api.get_reserve_ledger()
@@ -84,9 +73,6 @@ for entry in entries:
 print("\nGetting all tickers...")
 tic = api.get_ticker()
 print("ok.")
-
-tic = api.get_ticker('USD')
-print("EUR => USD: " + tic['EURUSD']['bid'])
 
 exit(0)
 

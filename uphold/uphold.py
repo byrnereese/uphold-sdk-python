@@ -19,55 +19,110 @@ url = 'https://api.uphold.com/v1/reserve/transactions/a97bb994-6e24-4a89-b653-e0
 
 from __future__ import print_function, unicode_literals
 
+import urllib3
 import requests
 import json
+import ssl
 from .version import __version__
 
+class VerificationRequired(Exception):
+    def __init__(self, value):
+        self.value = value
+    def __str__(self):
+        return repr(self.value)
+
+class RateLimitError(Exception):
+    def __init__(self, value):
+        self.value = value
+    def __str__(self):
+        return repr(self.value)
+
+class NotSupportedInProduction(Exception):
+    def __init__(self, value):
+        self.value = value
+    def __str__(self):
+        return repr(self.value)
 
 class Uphold(object):
     """
     Use this SDK to simplify interaction with the Uphold API
     """
-
-    def __init__(self, host='api.uphold.com'):
-        self.host = host
+    
+    def __init__(self, sandbox=False):
+        if sandbox:
+            self.host = 'api-sandbox.uphold.com'
+        else:
+            self.host = 'api.uphold.com'
+        self.in_sandbox = sandbox
+        self.debug   = False
         self.version = 0
         self.session = requests.Session()
         self.headers = {
             'Content-type': 'application/x-www-form-urlencoded',
             'User-Agent': 'uphold-python-sdk/' + __version__
-        }
+            }
         self.pat = None
+        self.otp = None
 
-    def auth(self, username, password):
+    def _debug(self, s):
+        if self.debug:
+            print(s)
+        
+    def verification_code(self, code):
+        self.otp = code
+
+    def auth_basic(self, username, password):
         """
         Authenticates against the Uphold backend using a username and password. Uphold
         return an User Auth Token, which is persisted for the life of the session.
-
+        
         :param String username An Uphold username or email address.
-
+        
         :param String password The password corresponding to the specified username.
+        
+        """
+        self.username = username
+        self.password = password
+        self.pat = None
+        
+    def auth_pat(self, pat):
+        """
+        Sets the authentication method to PAT, or "Personal Access Token." Before calling this
+        method, a PAT needs to be created using the create_path() method. 
+
+        :param String pat The personal access token
+
+        """
+        self.username = None
+        self.password = None
+        self.pat = pat
+
+    def create_pat(self, desc):
+        """
+        Creates a personal access token.
+
+        :param String desc A description for the token
+        
+        :rtype:
+          A string representing the Personal Access Token
+        """
+        params = {
+            'description': desc
+        }
+        self.headers['Content-Type'] = 'application/json'
+        data = self._post('/me/tokens', params)
+        return data.get('accessToken')
+
+    def get_pats(self):
+        """
+        Returns a list of personal access tokens.
 
         :rtype:
-          The user authentication token string.
+          A list of personal access tokens
         """
-
-        params = {
-            'client_id': 'UPHOLD',
-            'client_secret': 'secret',
-            'grant_type': 'password',
-            'username': username,
-            'password': password
-        }
-
-        data = self._post('/oauth2/token', params)
-        self.token = data.get('access_token')
-        self.refresh_token = data.get('refresh_token')
-        self.headers['Authorization'] = 'Bearer ' + self.token
+        self.headers['Content-Type'] = 'application/json'
+        data = self._get('/me/tokens')
         return data
-
-    def auth_pat(self, pat):
-        self.pat = pat
 
     def get_me(self):
         """
@@ -144,19 +199,6 @@ class Uphold(object):
           An array of hashes containing all the phone numbers of the current user.
         """
         return self._get('/me/phones')
-
-    def get_reserve_status(self):
-        """
-        Returns the current status of the reserve. The current status summarized
-        the liabilities and assets currently held in the reserve, indexed by the
-        asset type. Furthermore, the value of each asset and liability is
-        represented in all supported fiat currencies allowing developers to quickly
-        show the value of the reserve in US Dollars, or Euros, etc.
-
-        :rtype:
-          An array of hashes summarizing the reserve.
-        """
-        return self._get('/reserve')
 
     def get_reserve_statistics(self):
         return self._get('/reserve/statistics')
@@ -291,31 +333,103 @@ class Uphold(object):
             uri = '/ticker'
         return self._get(uri)
 
+    def get_vouchers(self):
+        """
+        Returns a list of all vouchers in one's account.
+
+        :rtype:
+          An array of vouchers
+        """
+        if not self.in_sandbox:
+            raise NotSupportedInProduction()
+        return self._get('/vouchers')
+
+    def get_voucher(self, id):
+        """
+        Returns all the information associated with a single voucher.
+
+        :param String id The ID of a specific voucher
+
+        :rtype:
+          A single voucher
+        """
+        if not self.in_sandbox:
+            raise NotSupportedInProduction()
+        return self._get('/vouchers/' + id)
+
+    def redeem_voucher(self, id):
+        """
+        Redeems a voucher
+
+        :param String id The ID of a specific voucher
+        """
+        if not self.in_sandbox:
+            raise NotSupportedInProduction()
+        return self._get('/vouchers/' + id + '/redeem')
+
+    def revert_voucher(self, id):
+        """
+        Reverts or reverses a voucher that has been previously redeemed
+
+        :param String id The ID of a specific voucher
+        """
+        if not self.in_sandbox:
+            raise NotSupportedInProduction()
+        return self._get('/vouchers/' + id + '/revert')
+
     """
     HELPER FUNCTIONS
     """
-
     def _build_url(self, uri):
         if uri.startswith('/oauth2'):
             return uri
         return '/v' + str(self.version) + uri
 
+    def _update_rate_limit(self, headers):
+        if 'X-RateLimit-Limit' in headers:
+            self.limit     = headers['X-RateLimit-Limit']
+            self.remaining = headers['X-RateLimit-Remaining']
+            self.reset     = headers['X-RateLimit-Reset']
+        else:
+            self.limit = self.remaining = self.reset = ""
+        
     def _post(self, uri, params):
         """
         """
         url = 'https://' + self.host + self._build_url(uri)
 
-        # You're ready to make verified HTTPS requests.
         try:
             if self.pat:
+                self._debug("Using PAT")
                 response = self.session.post(url, data=params, headers=self.headers, auth=(self.pat, 'X-OAuth-Basic'))
+            elif self.username:
+                self._debug("Using Basic Auth")
+                self.session.auth = ( self.username, self.password )
+                if self.otp:
+                    self._debug("Using verification code: " + self.otp)
+                    self.headers['X-Bitreserve-OTP'] = self.otp
+                self._debug(self.headers)
+                response = self.session.post(url, data=params, headers=self.headers)
             else:
                 response = self.session.post(url, data=params, headers=self.headers)
+
+            self._update_rate_limit( response.headers )
+
+            if 'X-Bitreserve-OTP' in response.headers:
+                self._debug("OTP Required!")
+                raise VerificationRequired("OTP Required")
+            elif response.status_code == 429:
+                self._debug("Rate Limit Error!")
+                raise RateLimitError(response.headers)
+
         except requests.exceptions.SSLError as e:
             # Handle incorrect certificate error.
-            print("Failed certificate check")
+            self._debug("Failed certificate check: " + str(e))
+            exit()
 
         data = json.loads(response.text)
+        if 'X-Bitreserve-OTP' in self.headers:
+            del self.headers['X-Bitreserve-OTP']
         return data
 
     def _get(self, uri):
@@ -326,12 +440,35 @@ class Uphold(object):
         # You're ready to make verified HTTPS requests.
         try:
             if self.pat:
+                self._debug("Using PAT")
                 response = self.session.get(url, headers=self.headers, auth=(self.pat, 'X-OAuth-Basic'))
+            elif self.username:
+                self._debug("Using Basic Auth")
+                self.session.auth = ( self.username, self.password )
+                if self.otp:
+                    self._debug("Using verification code: " + self.otp)
+                    self.headers['X-Bitreserve-OTP'] = self.otp
+                self._debug(self.headers)
+                response = self.session.get(url, headers=self.headers)
             else:
                 response = self.session.get(url, headers=self.headers)
-        except requests.exceptions.SSLError:
+
+            self._update_rate_limit( response.headers )
+
+            if 'X-Bitreserve-OTP' in response.headers:
+                self._debug("OTP Required!")
+                raise VerificationRequired("OTP Required")
+            elif response.status_code == 429:
+                self._debug("Rate Limit Error!")
+                raise RateLimitError(response.headers)
+
+        except requests.exceptions.SSLError as e:
             # Handle incorrect certificate error.
-            print("Failed certificate check")
+            self._debug("Failed certificate check: " + str(e))
+            exit()
 
         data = json.loads(response.text)
+        if 'X-Bitreserve-OTP' in self.headers:
+            del self.headers['X-Bitreserve-OTP']
         return data
+

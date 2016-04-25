@@ -12,8 +12,7 @@ username and password in hand, you can begin building apps against the Uphold AP
 
 There are three ways to authenticate against the API:
 
-* **OAuth** is the perfect solution for when your app needs to request permission to access a user's
-Uphold account. 
+* **OAuth** is the perfect solution for when your app needs to request permission to access a user's Uphold account. 
 
 * A **Personal Access Token ("PAT")** is ideal when you need to generate a token to access your own Uphold
 account. 
@@ -22,14 +21,40 @@ account.
 
 You can find out more about these two methods in our [API documentation](https://developer.uphold.com/api/v0/#authentication). 
 
-### Basic Auth Example
+### Basic Auth 
+
+Basic Authentication is performed when you transmit a username and password to Uphold. 
+
+Basic Auth is not recommended for most application due to security concerns, but is required in one circumstance: creating a Personal Access Token. 
+
+Please note that if your account has two factor authentication enabled, you will need to set the OTP parameter as well. The OTP parameter is the verification code sent to you when you attempt to login when 2FA is enabled. 
+
+#### Code Sample
 
     from uphold import Uphold
     api = Uphold()
-    api.auth( <username>, <password> )
+    api.opt( <code> )
+    api.auth_basic( <username>, <password> )
     me = api.get_me()
 
 ### Personal Access Token Example
+
+A Personal Access Token, or "PAT," is ideal when you are accessing your own account. When using a PAT, two-factor authentication is bypassed making it easier to manage your account programmatically. This also means that a PAT is incredibly sensitive and extra care should be taken to protect it. 
+
+#### Creating a PAT
+
+You create a PAT by calling the API. When doing so you will need to use basic authentication, and you may also need to transmit an OTP token. 
+
+*Tip: Temporarily turn two-factor authentication off prior to generating a PAT. When you have a PAT, turn it back on again.*
+
+    from uphold import Uphold
+    api = Uphold()
+    api.auth_basic( <username>, <password> )
+    api.otp( <code> )
+    pat = api.create_pat('This is a test auth token')
+    print "PAT: " + pat
+
+#### Code Sample
 
     from uphold import Uphold
     api = Uphold()
@@ -41,7 +66,7 @@ You can find out more about these two methods in our [API documentation](https:/
 The [Uphold Sandbox](https://uphold.com/en/developer/sandbox) is a test environment for developers to build and test their apps. The Sandbox environment uses fake money, but is otherwise an exact copy of our production system. 
 
     from uphold import Uphold
-    api = Uphold(host='api-sandbox.uphold.com')
+    api = Uphold(True)
 
 ## Conducting a Transaction
 
